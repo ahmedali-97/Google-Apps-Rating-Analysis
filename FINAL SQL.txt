@@ -1,0 +1,155 @@
+-- creation of play_store table
+
+CREATE TABLE play_store (
+    app VARCHAR(300),
+    category VARCHAR(100),
+    rating VARCHAR(100),
+    reviews VARCHAR(100),
+    size VARCHAR(100),
+    installs VARCHAR(100),
+    type VARCHAR(100),
+    price VARCHAR(100),
+    content_rating VARCHAR(100),
+    genres VARCHAR(100),
+    last_updated date,
+    current_ver VARCHAR(100),
+    android_ver VARCHAR(100)
+);
+
+==============================================
+-- creation of app_review table
+
+create table app_review (
+App	VARCHAR(100),
+Translated_Review text	,
+Sentiment	VARCHAR(100),
+Sentiment_Polarity	VARCHAR(100),
+Sentiment_Subjectivity VARCHAR(100)
+);
+
+
+==============================================
+
+
+-- 01 Which top 10 apps have the most negative reviews?
+
+SELECT App, COUNT(*) AS Negative_Review_Count
+FROM app_review
+WHERE Sentiment = 'Negative'
+GROUP BY App
+ORDER BY Negative_Review_Count DESC
+LIMIT 10;
+
+==============================================
+
+-- 02 What percentage of apps in each category are paid versus free?
+
+SELECT 
+    category, 
+    type, 
+    COUNT(*) AS app_count,
+    ROUND((COUNT(*) * 100.0 / SUM(COUNT(*)) OVER ()), 2) AS percentage
+FROM 
+    play_store
+GROUP BY 
+    category, type
+
+
+==============================================
+-- 03 Top 10 most expensive app
+
+SELECT 
+    App, 
+    Price 
+FROM play_store
+WHERE Type = 'Paid'
+ORDER BY CAST(REPLACE(Price, '$', '') AS FLOAT) DESC
+LIMIT 10;
+
+
+==============================================
+
+-- 04 Which top 10 apps has the highest number of positive reviews?
+SELECT App, COUNT(*) AS Positive_Review_Count
+FROM app_review
+WHERE Sentiment = 'Positive'
+GROUP BY App
+ORDER BY Positive_Review_Count DESC
+LIMIT 10;
+
+
+==============================================
+
+-- 05 How many reviews are neutral per app
+SELECT App, COUNT(*) AS Neutral_Review_Count
+FROM app_review
+WHERE Sentiment = 'Neutral'
+GROUP BY App;
+
+==============================================
+-- 06 Percentage of paid apps:
+SELECT 
+    (COUNT(*) FILTER (WHERE Type = 'Paid') * 100.0 / COUNT(*)) AS percentage_paid
+FROM play_store;
+
+==============================================
+-- 07 Number of apps by type (Free or Paid):
+SELECT 
+    Type, 
+    COUNT(*) AS app_count
+FROM play_store
+WHERE Type in ('Paid', 'Free')
+GROUP BY Type;
+
+==============================================
+-- 08 Top 10-rated app
+SELECT 
+    App, 
+    Rating 
+FROM play_store
+WHERE Rating IS NOT NULL
+ORDER BY Rating DESC
+LIMIT 10;
+
+
+==============================================
+
+-- 09 what the top 10 installed app ?
+SELECT 
+    App, 
+    Installs 
+FROM play_store
+WHERE REPLACE(REPLACE(installs, '+', ''), ',', '') ~ '^[0-9]+$'
+ORDER BY CAST(REPLACE(REPLACE(installs, '+', ''), ',', '') AS FLOAT) DESC
+LIMIT 10;
+
+==============================================
+-- 10 What is the distribution of app ratings by content rating?
+
+select content_rating,type,count(*) as app_count from play_store 
+group by content_rating,type 
+
+==============================================
+
+
+-- 11 I want to know the download count for each app along with the average size of the apps for each download count, with the results sorted in descending order based on the download count.
+
+WITH RankedApps AS (
+    SELECT 
+        App,
+        CAST(REPLACE(REPLACE(installs, '+', ''), ',', '') AS FLOAT) AS Install_Count,
+        CASE
+            WHEN LOWER(size) LIKE '%m%' THEN CAST(REPLACE(LOWER(size), 'm', '') AS FLOAT)
+            WHEN LOWER(size) LIKE '%k%' THEN CAST(REPLACE(LOWER(size), 'k', '') AS FLOAT) 
+            ELSE NULL 
+        END AS Size
+    FROM play_store
+    WHERE REPLACE(REPLACE(installs, '+', ''), ',', '') ~ '^[0-9]+$' 
+)
+SELECT 
+    Install_Count,
+    AVG(Size) AS Average_Size,
+    COUNT(App) AS App_Count
+FROM RankedApps
+GROUP BY Install_Count
+ORDER BY Install_Count DESC; 

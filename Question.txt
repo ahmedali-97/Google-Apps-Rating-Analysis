@@ -1,0 +1,11 @@
+01	Which top 10 apps have the most negative reviews?
+02	What percentage of apps in each category are paid versus free?
+03	What are the top 10 most expensive apps?
+04	Which top 10 apps have the highest number of positive reviews?
+05	How many reviews are neutral per app?
+06	What is the percentage of paid apps?
+07	What is the number of apps by type (Free or Paid)?
+08	What are the top 10 rated apps?
+09	What are the top 10 installed apps?
+10	What is the distribution of app ratings by content rating?
+11	What is the download count for each app along with the average size of the apps for each download count, sorted in descending order         based on the download count?
